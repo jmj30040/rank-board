@@ -19,7 +19,11 @@ function formatEventDateRange(startDate: string, endDate: string) {
 }
 
 export default function Home() {
-  const { settings } = useEventSettings();
+  const { settings, loading } = useEventSettings();
+
+  if (loading || !settings) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
