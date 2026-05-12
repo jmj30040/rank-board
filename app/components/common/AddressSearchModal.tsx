@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { KakaoPlace } from '../../types';
 
 interface AddressResult {
   name: string;
@@ -14,37 +15,6 @@ interface AddressSearchModalProps {
   onSelect: (address: AddressResult) => void;
   onClose: () => void;
 }
-
-interface KakaoPlacesService {
-  keywordSearch: (keyword: string, callback: (data: KakaoPlaceItem[], status: string) => void) => void;
-}
-
-interface KakaoStatus {
-  OK: string;
-  ZERO_RESULT: string;
-}
-
-declare global {
-  interface Window {
-    kakao?: {
-      maps: {
-        load: (callback: () => void) => void;
-        services: {
-          Places: new () => KakaoPlacesService;
-          Status: KakaoStatus;
-        };
-      };
-    };
-  }
-}
-
-type KakaoPlaceItem = {
-  place_name?: string;
-  address_name?: string;
-  road_address_name?: string;
-  x?: string;
-  y?: string;
-};
 
 export default function AddressSearchModal({ onSelect, onClose }: AddressSearchModalProps) {
   const [keyword, setKeyword] = useState('');
@@ -82,7 +52,7 @@ export default function AddressSearchModal({ onSelect, onClose }: AddressSearchM
     const kakao = window.kakao;
     const ps = new kakao.maps.services.Places();
 
-    ps.keywordSearch(keyword, (data, status) => {
+    ps.keywordSearch(keyword, (data: KakaoPlace[], status: string) => {
       setIsSearching(false);
       if (status === kakao.maps.services.Status.OK) {
         setResults(data.map((item) => ({

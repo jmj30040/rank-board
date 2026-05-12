@@ -1,33 +1,24 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-
-interface KakaoMapProps {
-  latitude?: number | string;
-  longitude?: number | string;
+type KakaoMapProps = {
+  latitude: string | number;
+  longitude: string | number;
   placeName?: string;
-}
+};
 
-interface KakaoMapInstance {
-  relayout: () => void;
+type KakaoMapInstance = {
   setCenter: (position: unknown) => void;
-}
+  relayout: () => void;
+};
 
-interface KakaoStatic {
-  maps: {
-    LatLng: new (lat: number, lng: number) => unknown;
-    Map: new (element: HTMLElement, options: Record<string, unknown>) => KakaoMapInstance;
-    Marker: new (options: Record<string, unknown>) => unknown;
-    InfoWindow: new (options: Record<string, unknown>) => unknown;
-    load: (callback: () => void) => void;
-  };
-}
+type KakaoMarkerInstance = {
+  setMap: (map: KakaoMapInstance | null) => void;
+};
 
-declare global {
-  interface Window {
-    kakao?: KakaoStatic;
-  }
-}
+type KakaoInfoWindowInstance = {
+  open: (map: KakaoMapInstance, marker: KakaoMarkerInstance) => void;
+};
 
 // SDK 로드 상태를 관리하는 전역 Promise (중복 로드 방지)
 let sdkLoadPromise: Promise<void> | null = null;
@@ -37,7 +28,7 @@ const loadKakaoSDK = (): Promise<void> => {
 
   // 이미 로드된 경우 즉시 반환
   if (window.kakao && window.kakao.maps && typeof window.kakao.maps.load === 'function') {
-    return new Promise((resolve) => window.kakao.maps.load(() => resolve()));
+    return new Promise((resolve) => window.kakao?.maps.load(() => resolve()));
   }
 
   if (sdkLoadPromise) return sdkLoadPromise;
@@ -98,13 +89,17 @@ export default function KakaoMap({ latitude, longitude, placeName }: KakaoMapPro
           level: 3,
         });
         
-        const marker = new kakao.maps.Marker({ position });
+        const marker = new kakao.maps.Marker({
+          position,
+        }) as KakaoMarkerInstance;
+
         marker.setMap(mapInstance);
 
         if (placeName) {
           const infowindow = new kakao.maps.InfoWindow({
-            content: `<div style="width:150px;text-align:center;padding:6px 0;font-size:12px;color:#000;font-weight:700;">${placeName}</div>`,
-          });
+            content: `<div style="padding:5px;font-size:12px;">${placeName}</div>`,
+          }) as KakaoInfoWindowInstance;
+
           infowindow.open(mapInstance, marker);
         }
 

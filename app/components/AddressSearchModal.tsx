@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { KakaoPlace } from '../types';
 
 interface AddressResult {
   name: string;
@@ -15,15 +16,9 @@ interface AddressSearchModalProps {
   onClose: () => void;
 }
 
-declare global {
-  interface Window {
-    kakao: any;
-  }
-}
-
 export default function AddressSearchModal({ onSelect, onClose }: AddressSearchModalProps) {
   const [keyword, setKeyword] = useState('');
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<AddressResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [sdkLoaded, setSdkLoaded] = useState(false);
 
@@ -38,7 +33,7 @@ export default function AddressSearchModal({ onSelect, onClose }: AddressSearchM
     script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_KEY}&libraries=services&autoload=false`;
     script.async = true;
     script.onload = () => {
-      window.kakao.maps.load(() => {
+      window.kakao?.maps.load(() => {
         setSdkLoaded(true);
       });
     };
@@ -53,13 +48,19 @@ export default function AddressSearchModal({ onSelect, onClose }: AddressSearchM
     if (!keyword.trim() || !sdkLoaded) return;
 
     setIsSearching(true);
-    const kakao = window.kakao as any;
+    const kakao = window.kakao!;
     const ps = new kakao.maps.services.Places();
 
-    ps.keywordSearch(keyword, (data: any, status: any) => {
+    ps.keywordSearch(keyword, (data: KakaoPlace[], status: string) => {
       setIsSearching(false);
       if (status === kakao.maps.services.Status.OK) {
-        setResults(data);
+        setResults(data.map((item) => ({
+          name: item.place_name || item.address_name || '',
+          address: item.address_name || '',
+          roadAddress: item.road_address_name || item.address_name || '',
+          latitude: parseFloat(item.y || '') || 0,
+          longitude: parseFloat(item.x || '') || 0,
+        })));
       } else if (status === kakao.maps.services.Status.ZERO_RESULT) {
         setResults([]);
       } else {
@@ -69,15 +70,8 @@ export default function AddressSearchModal({ onSelect, onClose }: AddressSearchM
     });
   };
 
-  const handleSelect = (item: any) => {
-    const addressData: AddressResult = {
-      name: item.place_name || item.address_name || '',
-      address: item.address_name || '',
-      roadAddress: item.road_address_name || item.address_name || '',
-      latitude: parseFloat(item.y) || 0,
-      longitude: parseFloat(item.x) || 0,
-    };
-    onSelect(addressData);
+  const handleSelect = (item: AddressResult) => {
+    onSelect(item);
     onClose();
   };
 
@@ -113,12 +107,12 @@ export default function AddressSearchModal({ onSelect, onClose }: AddressSearchM
                   onClick={() => handleSelect(item)}
                   className="w-full text-left p-3 border border-slate-200 rounded hover:bg-slate-100 transition-colors"
                 >
-                  <div className="font-semibold text-slate-900">{item.place_name || item.address_name}</div>
-                  {item.road_address_name && (
-                    <div className="text-sm text-slate-600">{item.road_address_name}</div>
+                  <div className="font-semibold text-slate-900">{item.name}</div>
+                  {item.roadAddress && (
+                    <div className="text-sm text-slate-600">{item.roadAddress}</div>
                   )}
-                  {item.address_name && (
-                    <div className="text-sm text-slate-500">{item.address_name}</div>
+                  {item.address && (
+                    <div className="text-sm text-slate-500">{item.address}</div>
                   )}
                 </button>
               ))}
