@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Schedule } from '../types';
+import { Schedule } from '@/types';
 import ScheduleCard from './ScheduleCard';
 
 interface ScheduleTimelineProps {
@@ -10,12 +9,6 @@ interface ScheduleTimelineProps {
 }
 
 export default function ScheduleTimeline({ schedules, highlightedId }: ScheduleTimelineProps) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const isScheduleActive = (schedule: Schedule) => {
     const now = new Date();
     return schedule.startDateTime <= now && now <= schedule.endDateTime;
@@ -38,8 +31,8 @@ export default function ScheduleTimeline({ schedules, highlightedId }: ScheduleT
           <ScheduleCard
             key={schedule.id}
             schedule={schedule}
-            isActive={mounted ? isScheduleActive(schedule) : false}
-            isPast={mounted ? isSchedulePast(schedule) : false}
+            isActive={isScheduleActive(schedule)}
+            isPast={isSchedulePast(schedule)}
             isHighlighted={schedule.id === highlightedId}
           />
         ))}

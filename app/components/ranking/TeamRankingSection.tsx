@@ -1,6 +1,6 @@
 'use client';
 
-import { Team, Participant } from '../types';
+import { Team, Participant } from '@/types';
 import EmptyRankingState from './EmptyRankingState';
 
 interface TeamRankingSectionProps {

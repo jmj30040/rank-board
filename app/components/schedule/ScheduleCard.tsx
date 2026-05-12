@@ -1,8 +1,9 @@
 'use client';
 
-import { Schedule } from '../types';
-import KakaoMap from '../KakaoMap';
-import { getNaverMapUrl, getKakaoNaviUrl, getTmapUrl } from '../lib/mapLinks';
+import Image from 'next/image';
+import { Schedule } from '@/types';
+import KakaoMap from '@/components/maps/KakaoMap';
+import { getNaverMapUrl, getKakaoNaviUrl, getTmapUrl } from '@/lib/mapLinks';
 
 interface ScheduleCardProps {
   schedule: Schedule;
@@ -74,7 +75,6 @@ export default function ScheduleCard({ schedule, isActive, isPast, isHighlighted
           <KakaoMap
             latitude={schedule.latitude}
             longitude={schedule.longitude}
-            address={displayAddress}
             placeName={schedule.placeName}
           />
           {!hasCoordinates ? (
@@ -91,7 +91,7 @@ export default function ScheduleCard({ schedule, isActive, isPast, isHighlighted
                 rel="noreferrer"
                 className="flex-1 bg-white border border-slate-200 text-slate-600 py-3 rounded-2xl text-[11px] font-black hover:bg-slate-50 transition-all flex items-center justify-center gap-1.5 active:scale-95"
               >
-                <img src={`${iconPath}/naver-map.webp`} alt="" className="w-4 h-4 object-contain" />
+                <Image src={`${iconPath}/naver-map.webp`} alt="" width={16} height={16} className="object-contain" />
                 네이버
               </a>
               <a
@@ -102,7 +102,7 @@ export default function ScheduleCard({ schedule, isActive, isPast, isHighlighted
               }`}
               aria-disabled={!kakaoNaviUrl}
               >
-                <img src={`${iconPath}/kakao-navi.svg`} alt="" className="w-4 h-4 object-contain" />
+                <Image src={`${iconPath}/kakao-navi.svg`} alt="" width={16} height={16} className="object-contain" />
               카카오내비
               </a>
               <a
@@ -111,7 +111,7 @@ export default function ScheduleCard({ schedule, isActive, isPast, isHighlighted
                 rel="noreferrer"
                 className="flex-1 bg-slate-900 text-white py-3 rounded-2xl text-[11px] font-black hover:bg-black transition-all flex items-center justify-center gap-1.5 active:scale-95"
               >
-                <img src={`${iconPath}/tmap.svg`} alt="" className="w-4 h-4 object-contain" />
+                <Image src={`${iconPath}/tmap.svg`} alt="" width={16} height={16} className="object-contain" />
                 티맵
               </a>
             </div>

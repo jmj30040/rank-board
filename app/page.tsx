@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useEventSettings } from './hooks/useEventSettings';
 
@@ -26,7 +27,7 @@ export default function Home() {
       <div className="bg-gradient-to-br from-sky-400 to-emerald-400 pt-20 pb-32 px-6 rounded-b-[3rem] shadow-sm">
         <div className="max-w-4xl mx-auto text-center text-white">
           <div className="flex justify-center mb-8">
-            <img src="/icons/farmsco.svg" alt="Farmsco" className="h-10 md:h-12 w-auto" />
+            <Image src="/icons/farmsco.svg" alt="Farmsco" width={48} height={48} className="h-10 md:h-12 w-auto" />
           </div>
           <h1 className="text-6xl font-black mb-4 tracking-tight">{settings.mainTitle}</h1>
           <p className="text-xl font-medium opacity-90 mb-2">{settings.eventName}</p>

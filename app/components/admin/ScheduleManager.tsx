@@ -1,17 +1,25 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSchedules } from '../hooks/useSchedules';
-import { addSchedule, updateSchedule, deleteSchedule } from '../lib/scheduleService';
-import AddressSearchModal from '../components/AddressSearchModal';
-import { Schedule } from '../types';
+import { useSchedules } from '@/hooks/useSchedules';
+import { addSchedule, updateSchedule, deleteSchedule } from '@/lib/scheduleService';
+import AddressSearchModal from '@/components/common/AddressSearchModal';
+import { Schedule } from '@/types';
 
-export default function ScheduleSection() {
+interface AddressResult {
+  name: string;
+  address: string;
+  roadAddress: string;
+  latitude: number;
+  longitude: number;
+}
+
+export default function ScheduleManager() {
   const { schedules, loading } = useSchedules();
   const [showForm, setShowForm] = useState(false);
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [selectedAddress, setSelectedAddress] = useState<any>(null);
+  const [selectedAddress, setSelectedAddress] = useState<AddressResult | null>(null);
   const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: '', visible: false });
 
   const showToast = (message: string) => {
@@ -39,7 +47,7 @@ export default function ScheduleSection() {
     longitude: 0,
   });
 
-  const handleAddressSelect = (address: any) => {
+  const handleAddressSelect = (address: AddressResult) => {
     setSelectedAddress(address);
     setFormData((prev) => ({
       ...prev,

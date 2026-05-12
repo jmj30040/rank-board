@@ -15,30 +15,38 @@ interface AddressSearchModalProps {
   onClose: () => void;
 }
 
-declare global {
-  interface Window {
-    kakao: any;
-  }
+interface KakaoPlacesService {
+  keywordSearch: (keyword: string, callback: (data: KakaoPlaceItem[], status: string) => void) => void;
 }
+
+interface KakaoStatus {
+  OK: string;
+  ZERO_RESULT: string;
+}
+
+type KakaoPlaceItem = {
+  place_name?: string;
+  address_name?: string;
+  road_address_name?: string;
+  x?: string;
+  y?: string;
+};
 
 export default function AddressSearchModal({ onSelect, onClose }: AddressSearchModalProps) {
   const [keyword, setKeyword] = useState('');
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<AddressResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [sdkLoaded, setSdkLoaded] = useState(false);
+  const [sdkLoaded, setSdkLoaded] = useState(() => typeof window !== 'undefined' && !!window.kakao);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if ((window as any).kakao) {
-      setSdkLoaded(true);
-      return;
-    }
+    if (sdkLoaded || typeof window === 'undefined') return;
+    if (window.kakao) return;
 
     const script = document.createElement('script');
     script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_KEY}&libraries=services&autoload=false`;
     script.async = true;
     script.onload = () => {
-      window.kakao.maps.load(() => {
+      window.kakao?.maps.load(() => {
         setSdkLoaded(true);
       });
     };
@@ -47,19 +55,25 @@ export default function AddressSearchModal({ onSelect, onClose }: AddressSearchM
       alert('카카오 지도 SDK를 불러오는 데 실패했습니다.');
     };
     document.head.appendChild(script);
-  }, []);
+  }, [sdkLoaded]);
 
   const handleSearch = () => {
-    if (!keyword.trim() || !sdkLoaded) return;
+    if (!keyword.trim() || !sdkLoaded || typeof window === 'undefined' || !window.kakao) return;
 
     setIsSearching(true);
-    const kakao = (window as any).kakao;
+    const kakao = window.kakao;
     const ps = new kakao.maps.services.Places();
 
-    ps.keywordSearch(keyword, (data: any, status: any) => {
+    ps.keywordSearch(keyword, (data, status) => {
       setIsSearching(false);
       if (status === kakao.maps.services.Status.OK) {
-        setResults(data);
+        setResults(data.map((item) => ({
+          name: item.place_name || item.address_name || '',
+          address: item.address_name || '',
+          roadAddress: item.road_address_name || item.address_name || '',
+          latitude: parseFloat(item.y || '') || 0,
+          longitude: parseFloat(item.x || '') || 0,
+        })));
       } else if (status === kakao.maps.services.Status.ZERO_RESULT) {
         setResults([]);
       } else {
@@ -69,15 +83,8 @@ export default function AddressSearchModal({ onSelect, onClose }: AddressSearchM
     });
   };
 
-  const handleSelect = (item: any) => {
-    const addressData: AddressResult = {
-      name: item.place_name || item.address_name || '',
-      address: item.address_name || '',
-      roadAddress: item.road_address_name || item.address_name || '',
-      latitude: parseFloat(item.y) || 0,
-      longitude: parseFloat(item.x) || 0,
-    };
-    onSelect(addressData);
+  const handleSelect = (item: AddressResult) => {
+    onSelect(item);
     onClose();
   };
 
@@ -113,12 +120,12 @@ export default function AddressSearchModal({ onSelect, onClose }: AddressSearchM
                   onClick={() => handleSelect(item)}
                   className="w-full text-left p-3 border border-slate-200 rounded hover:bg-slate-100 transition-colors"
                 >
-                  <div className="font-semibold text-slate-900">{item.place_name || item.address_name}</div>
-                  {item.road_address_name && (
-                    <div className="text-sm text-slate-600">{item.road_address_name}</div>
+                  <div className="font-semibold text-slate-900">{item.name}</div>
+                  {item.roadAddress && (
+                    <div className="text-sm text-slate-600">{item.roadAddress}</div>
                   )}
-                  {item.address_name && (
-                    <div className="text-sm text-slate-500">{item.address_name}</div>
+                  {item.address && (
+                    <div className="text-sm text-slate-500">{item.address}</div>
                   )}
                 </button>
               ))}

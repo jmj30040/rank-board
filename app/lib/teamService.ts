@@ -1,5 +1,33 @@
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from './firebase';
+import { Team } from '../types';
+
+export function subscribeTeams(
+  onChange: (teams: Team[]) => void,
+  onError?: (error: Error) => void,
+) {
+  const q = query(collection(db, 'teams'), orderBy('score', 'desc'));
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const teamsData: Team[] = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name,
+          color: data.color,
+          score: Number(data.score ?? 0),
+          createdAt: data.createdAt.toDate(),
+          updatedAt: data.updatedAt.toDate(),
+        } as Team;
+      });
+      onChange(teamsData);
+    },
+    (error) => {
+      onError?.(error);
+    }
+  );
+}
 
 export async function addTeam(name: string, color: string): Promise<void> {
   const now = new Date();

@@ -1,5 +1,37 @@
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { db } from './firebase';
+import { Participant } from '../types';
+
+export function subscribeParticipants(
+  onChange: (participants: Participant[]) => void,
+  onError?: (error: Error) => void,
+) {
+  const q = query(collection(db, 'participants'), orderBy('score', 'desc'));
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const participantsData: Participant[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        participantsData.push({
+          id: doc.id,
+          name: data.name,
+          department: data.department,
+          teamId: data.teamId,
+          teamName: data.teamName,
+          teamColor: data.teamColor,
+          score: Number(data.score ?? 0),
+          createdAt: data.createdAt.toDate(),
+          updatedAt: data.updatedAt.toDate(),
+        });
+      });
+      onChange(participantsData);
+    },
+    (error) => {
+      onError?.(error);
+    }
+  );
+}
 
 export async function addParticipant(name: string, department: string, teamId: string | null, teamName: string, teamColor: string): Promise<void> {
   const now = new Date();

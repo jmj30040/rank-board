@@ -2,6 +2,41 @@ import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy,
 import { db } from './firebase';
 import { Schedule } from '../types';
 
+export function subscribeSchedules(
+  onChange: (schedules: Schedule[]) => void,
+  onError?: (error: Error) => void,
+) {
+  const q = query(collection(db, 'schedules'), orderBy('startDateTime', 'asc'));
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const schedulesData: Schedule[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        schedulesData.push({
+          id: doc.id,
+          title: data.title,
+          description: data.description,
+          startDateTime: data.startDateTime.toDate(),
+          endDateTime: data.endDateTime.toDate(),
+          placeName: data.placeName,
+          address: data.address,
+          roadAddress: data.roadAddress,
+          latitude: data.latitude,
+          longitude: data.longitude,
+          sortOrder: data.sortOrder,
+          createdAt: data.createdAt.toDate(),
+          updatedAt: data.updatedAt.toDate(),
+        });
+      });
+      onChange(schedulesData);
+    },
+    (error) => {
+      onError?.(error);
+    }
+  );
+}
+
 export async function addSchedule(schedule: Omit<Schedule, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> {
   const now = new Date();
   await addDoc(collection(db, 'schedules'), {

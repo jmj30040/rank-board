@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Schedule } from '../types';
+import { Schedule } from '@/types';
 
 interface ScheduleOverviewProps {
   schedules: Schedule[];
@@ -9,12 +8,6 @@ interface ScheduleOverviewProps {
 }
 
 export default function ScheduleOverview({ schedules, onItemClick }: ScheduleOverviewProps) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   // 시작 시간 기준 오름차순 정렬
   const sortedSchedules = [...schedules].sort((a, b) => a.startDateTime.getTime() - b.startDateTime.getTime());
 
@@ -32,14 +25,14 @@ export default function ScheduleOverview({ schedules, onItemClick }: ScheduleOve
     <section className="mb-16">
       <div className="mb-6 flex items-center gap-3">
         <span className="w-1.5 h-6 bg-sky-500 rounded-full"></span>
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Today's Schedule</h2>
+        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Today&apos;s Schedule</h2>
       </div>
       
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8">
         <div className="space-y-8 relative before:content-[''] before:absolute before:left-[95px] sm:before:left-[135px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100">
           {sortedSchedules.map((schedule) => {
-            const active = mounted ? isScheduleActive(schedule) : false;
-            const past = mounted ? isSchedulePast(schedule) : false;
+            const active = isScheduleActive(schedule);
+            const past = isSchedulePast(schedule);
             
             return (
               <div 

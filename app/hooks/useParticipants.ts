@@ -1,36 +1,27 @@
 import { useState, useEffect } from 'react';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { db } from '../lib/firebase';
 import { Participant } from '../types';
+import { subscribeParticipants } from '../lib/participantService';
 
 export function useParticipants() {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const q = query(collection(db, 'participants'), orderBy('score', 'desc'));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const participantsData: Participant[] = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data() as any;
-        participantsData.push({
-          id: doc.id,
-          name: data.name,
-          department: data.department,
-          teamId: data.teamId,
-          teamName: data.teamName,
-          teamColor: data.teamColor,
-          score: data.score,
-          createdAt: data.createdAt.toDate(),
-          updatedAt: data.updatedAt.toDate(),
-        });
-      });
-      setParticipants(participantsData);
-      setLoading(false);
-    });
+    const unsubscribe = subscribeParticipants(
+      (data) => {
+        setParticipants(data);
+        setLoading(false);
+      },
+      (err) => {
+        console.error('Participants subscription error:', err);
+        setError(err.message);
+        setLoading(false);
+      }
+    );
 
     return () => unsubscribe();
   }, []);
 
-  return { participants, loading };
+  return { participants, loading, error };
 }

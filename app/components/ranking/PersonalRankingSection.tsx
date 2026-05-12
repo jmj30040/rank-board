@@ -1,6 +1,6 @@
 'use client';
 
-import { Participant } from '../types';
+import { Participant } from '@/types';
 import EmptyRankingState from './EmptyRankingState';
 
 interface PersonalRankingSectionProps {

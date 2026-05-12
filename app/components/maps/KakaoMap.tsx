@@ -5,8 +5,28 @@ import { useEffect, useRef, useState } from 'react';
 interface KakaoMapProps {
   latitude?: number | string;
   longitude?: number | string;
-  address?: string;
   placeName?: string;
+}
+
+interface KakaoMapInstance {
+  relayout: () => void;
+  setCenter: (position: unknown) => void;
+}
+
+interface KakaoStatic {
+  maps: {
+    LatLng: new (lat: number, lng: number) => unknown;
+    Map: new (element: HTMLElement, options: Record<string, unknown>) => KakaoMapInstance;
+    Marker: new (options: Record<string, unknown>) => unknown;
+    InfoWindow: new (options: Record<string, unknown>) => unknown;
+    load: (callback: () => void) => void;
+  };
+}
+
+declare global {
+  interface Window {
+    kakao?: KakaoStatic;
+  }
 }
 
 // SDK 로드 상태를 관리하는 전역 Promise (중복 로드 방지)
@@ -47,25 +67,22 @@ const loadKakaoSDK = (): Promise<void> => {
   return sdkLoadPromise;
 };
 
-export default function KakaoMap({ latitude, longitude, address, placeName }: KakaoMapProps) {
+export default function KakaoMap({ latitude, longitude, placeName }: KakaoMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'no-data'>('loading');
-
-  // 좌표 검증 및 변환
   const latNum = Number(latitude);
   const lngNum = Number(longitude);
   const isValidCoords = latitude !== undefined && longitude !== undefined && 
                         !isNaN(latNum) && !isNaN(lngNum) && 
                         latNum !== 0 && lngNum !== 0;
+  const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'no-data'>(isValidCoords ? 'loading' : 'no-data');
 
   useEffect(() => {
     if (!isValidCoords) {
-      setStatus('no-data');
       return;
     }
 
     let isUnmounted = false;
-    let mapInstance: any = null;
+    let mapInstance: KakaoMapInstance | null = null;
 
     const initMap = async () => {
       try {

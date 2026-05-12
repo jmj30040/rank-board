@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { db } from '../lib/firebase';
-import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
-import Link from 'next/link';
-import { Team, Participant } from '../types';
-import RankingPageHero from './RankingPageHero';
-import TeamRankingSection from './TeamRankingSection';
-import PersonalRankingSection from './PersonalRankingSection';
+import { db } from '@/lib/firebase';
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { Team, Participant } from '@/types';
+import RankingPageHero from '@/components/ranking/RankingPageHero';
+import TeamRankingSection from '@/components/ranking/TeamRankingSection';
+import PersonalRankingSection from '@/components/ranking/PersonalRankingSection';
 
 // 공동 순위 계산 함수
 function calculateRanks<T extends { score: number }>(items: T[]) {

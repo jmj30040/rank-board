@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { useSchedules } from '../hooks/useSchedules';
-import ScheduleOverview from '../components/ScheduleOverview';
-import ScheduleTimeline from '../components/ScheduleTimeline';
+import { useSchedules } from '@/hooks/useSchedules';
+import ScheduleOverview from '@/components/schedule/ScheduleOverview';
+import ScheduleTimeline from '@/components/schedule/ScheduleTimeline';
 
 export default function SchedulePage() {
-  const [mapLoaded, setMapLoaded] = useState(false);
   const { schedules, loading } = useSchedules();
 
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
@@ -25,25 +24,6 @@ export default function SchedulePage() {
     setTimeout(() => setHighlightedId(null), 2000);
   };
 
-  const eventStartDate = '2026년 6월 11일';
-  const eventEndDate = '2026년 6월 12일';
-
-  useEffect(() => {
-    // Kakao Map SDK 로드
-    if (typeof window !== 'undefined' && !(window as any).kakao) {
-      const script = document.createElement('script');
-      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_KEY}&libraries=services&autoload=false`;
-      script.async = true;
-      script.onload = () => {
-        window.kakao.maps.load(() => {
-          setMapLoaded(true);
-        });
-      };
-      document.head.appendChild(script);
-    } else {
-      setMapLoaded(true);
-    }
-  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50">
