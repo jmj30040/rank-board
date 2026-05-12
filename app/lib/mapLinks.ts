@@ -19,10 +19,15 @@ export function getNaverMapUrl(schedule: Partial<Schedule>) {
 }
 
 export function getKakaoNaviUrl(schedule: Partial<Schedule>) {
-  if (!schedule.latitude || !schedule.longitude) return '';
+  const x = Number(schedule.longitude); // 경도
+  const y = Number(schedule.latitude);  // 위도
+
+  if (!x || !y || isNaN(x) || isNaN(y)) return '';
+
   const name = encodeURIComponent(schedule.placeName || '목적지');
-  // x: 경도, y: 위도
-  return `kakaonavi://navigate?name=${name}&x=${schedule.longitude}&y=${schedule.latitude}`;
+  // Kakao Map link/to: 이름,위도,경도
+  // 이 링크는 카카오맵/내비 앱 실행을 안정적으로 지원하며 웹에서도 동작합니다.
+  return `https://map.kakao.com/link/to/${name},${y},${x}`;
 }
 
 export function getTmapUrl(schedule: Partial<Schedule>) {
