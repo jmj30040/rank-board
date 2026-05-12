@@ -21,7 +21,7 @@ const defaultSettings: EventSettings = {
 };
 
 export function useEventSettings() {
-  const [settings, setSettings] = useState<EventSettings>(defaultSettings);
+  const [settings, setSettings] = useState<EventSettings | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,3 +39,4 @@ export function useEventSettings() {
 
   return { settings, loading };
 }
+
