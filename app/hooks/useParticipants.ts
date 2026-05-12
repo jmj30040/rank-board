@@ -12,11 +12,14 @@ export function useParticipants() {
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const participantsData: Participant[] = [];
       querySnapshot.forEach((doc) => {
-        const data = doc.data();
+        const data = doc.data() as any;
         participantsData.push({
           id: doc.id,
           name: data.name,
-          team: data.team,
+          department: data.department,
+          teamId: data.teamId,
+          teamName: data.teamName,
+          teamColor: data.teamColor,
           score: data.score,
           createdAt: data.createdAt.toDate(),
           updatedAt: data.updatedAt.toDate(),
