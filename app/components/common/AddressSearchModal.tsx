@@ -24,6 +24,20 @@ interface KakaoStatus {
   ZERO_RESULT: string;
 }
 
+declare global {
+  interface Window {
+    kakao?: {
+      maps: {
+        load: (callback: () => void) => void;
+        services: {
+          Places: new () => KakaoPlacesService;
+          Status: KakaoStatus;
+        };
+      };
+    };
+  }
+}
+
 type KakaoPlaceItem = {
   place_name?: string;
   address_name?: string;
@@ -36,11 +50,15 @@ export default function AddressSearchModal({ onSelect, onClose }: AddressSearchM
   const [keyword, setKeyword] = useState('');
   const [results, setResults] = useState<AddressResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [sdkLoaded, setSdkLoaded] = useState(() => typeof window !== 'undefined' && !!window.kakao);
-
+  const [sdkLoaded, setSdkLoaded] = useState(
+    () => typeof window !== 'undefined' && !!window.kakao?.maps?.services
+  );
   useEffect(() => {
     if (sdkLoaded || typeof window === 'undefined') return;
-    if (window.kakao) return;
+    if (window.kakao?.maps?.services) {
+      setSdkLoaded(true);
+      return;
+    }
 
     const script = document.createElement('script');
     script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_KEY}&libraries=services&autoload=false`;
