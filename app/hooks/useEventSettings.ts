@@ -24,6 +24,10 @@ export function useEventSettings() {
   const [settings, setSettings] = useState<EventSettings | null>(null);
   const [loading, setLoading] = useState(true);
 
+  if (!settings) {
+    return null;
+  }
+
   useEffect(() => {
     const unsub = onSnapshot(doc(db, 'settings', 'event'), (docSnap) => {
       if (docSnap.exists()) {
