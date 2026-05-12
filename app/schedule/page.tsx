@@ -10,6 +10,21 @@ export default function SchedulePage() {
   const [mapLoaded, setMapLoaded] = useState(false);
   const { schedules, loading } = useSchedules();
 
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
+
+  const scrollToSchedule = (id: string) => {
+    setHighlightedId(id);
+    const target = document.getElementById(`schedule-${id}`);
+    if (target) {
+      target.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+    // 2초 후 강조 효과 제거
+    setTimeout(() => setHighlightedId(null), 2000);
+  };
+
   const eventStartDate = '2026년 6월 11일';
   const eventEndDate = '2026년 6월 12일';
 
@@ -54,8 +69,8 @@ export default function SchedulePage() {
 
         {!loading && schedules.length > 0 && (
           <>
-            <ScheduleOverview schedules={schedules} />
-            <ScheduleTimeline schedules={schedules} />
+            <ScheduleOverview schedules={schedules} onItemClick={scrollToSchedule} />
+            <ScheduleTimeline schedules={schedules} highlightedId={highlightedId} />
           </>
         )}
       </div>

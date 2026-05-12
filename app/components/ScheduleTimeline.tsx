@@ -6,9 +6,10 @@ import ScheduleCard from './ScheduleCard';
 
 interface ScheduleTimelineProps {
   schedules: Schedule[];
+  highlightedId: string | null;
 }
 
-export default function ScheduleTimeline({ schedules }: ScheduleTimelineProps) {
+export default function ScheduleTimeline({ schedules, highlightedId }: ScheduleTimelineProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -39,6 +40,7 @@ export default function ScheduleTimeline({ schedules }: ScheduleTimelineProps) {
             schedule={schedule}
             isActive={mounted ? isScheduleActive(schedule) : false}
             isPast={mounted ? isSchedulePast(schedule) : false}
+            isHighlighted={schedule.id === highlightedId}
           />
         ))}
       </div>

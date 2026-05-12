@@ -5,9 +5,10 @@ import { Schedule } from '../types';
 
 interface ScheduleOverviewProps {
   schedules: Schedule[];
+  onItemClick?: (id: string) => void;
 }
 
-export default function ScheduleOverview({ schedules }: ScheduleOverviewProps) {
+export default function ScheduleOverview({ schedules, onItemClick }: ScheduleOverviewProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -43,7 +44,8 @@ export default function ScheduleOverview({ schedules }: ScheduleOverviewProps) {
             return (
               <div 
                 key={schedule.id} 
-                className={`flex gap-6 sm:gap-10 items-start transition-opacity ${past ? 'opacity-40' : 'opacity-100'}`}
+                onClick={() => onItemClick?.(schedule.id)}
+                className={`flex gap-6 sm:gap-10 items-start transition-all cursor-pointer hover:bg-slate-50 p-4 -m-4 rounded-[2rem] ${past ? 'opacity-40' : 'opacity-100'}`}
               >
                 {/* 날짜 및 시간 영역 */}
                 <div className="flex-shrink-0 w-20 sm:w-32 text-right">
@@ -58,7 +60,7 @@ export default function ScheduleOverview({ schedules }: ScheduleOverviewProps) {
                 {/* 요약 내용 영역 */}
                 <div className="relative pt-0.5 flex-1">
                   {/* 타임라인 인디케이터 */}
-                  <div className={`absolute -left-[35px] sm:-left-[55px] top-2 w-3 h-3 rounded-full border-4 border-white z-10 ${active ? 'bg-sky-500 ring-4 ring-sky-100' : 'bg-slate-300'}`} />
+                  <div className={`absolute -left-[15px] sm:-left-[39px] top-2 w-3 h-3 rounded-full border-4 border-white z-10 ${active ? 'bg-sky-500 ring-4 ring-sky-100' : 'bg-slate-300'}`} />
                   
                   <h3 className={`text-base font-bold leading-tight ${active ? 'text-sky-600' : 'text-slate-800'}`}>
                     {schedule.title}

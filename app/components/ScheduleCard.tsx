@@ -8,21 +8,28 @@ interface ScheduleCardProps {
   schedule: Schedule;
   isActive: boolean;
   isPast: boolean;
+  isHighlighted?: boolean;
 }
 
-export default function ScheduleCard({ schedule, isActive, isPast }: ScheduleCardProps) {
+export default function ScheduleCard({ schedule, isActive, isPast, isHighlighted }: ScheduleCardProps) {
   const hasLocation = !!(schedule.placeName || schedule.address || schedule.roadAddress);
   const displayAddress = schedule.roadAddress || schedule.address || '';
   const iconPath = '/icons';
 
+  // 좌표 정보가 유효한지 확인 (0이 아니고 값이 존재해야 함)
+  const hasCoordinates = schedule.latitude && schedule.longitude && schedule.latitude !== 0 && schedule.longitude !== 0;
+
   return (
     <div
-      className={`p-6 rounded-[2rem] border transition-all ${
-        isActive
-          ? 'border-sky-200 bg-sky-50/50 shadow-md ring-4 ring-sky-100'
-          : isPast
-            ? 'border-slate-100 bg-white opacity-60'
-            : 'border-slate-100 bg-white shadow-sm'
+      id={`schedule-${schedule.id}`}
+      className={`p-6 rounded-[2rem] border transition-all duration-500 ${
+        isHighlighted
+          ? 'border-sky-400 bg-sky-50 shadow-xl ring-4 ring-sky-200 scale-[1.01]'
+          : isActive
+            ? 'border-sky-200 bg-sky-50/50 shadow-md ring-4 ring-sky-100'
+            : isPast
+              ? 'border-slate-100 bg-white opacity-60'
+              : 'border-slate-100 bg-white shadow-sm'
       }`}
     >
       {isActive && (
@@ -33,9 +40,15 @@ export default function ScheduleCard({ schedule, isActive, isPast }: ScheduleCar
 
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <div suppressHydrationWarning className={`px-4 py-1.5 rounded-xl text-sm font-black ${isActive ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-500'}`}>
-            {schedule.startDateTime.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} ~{' '}
-            {schedule.endDateTime.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+          <div suppressHydrationWarning className={`px-5 py-3 rounded-2xl text-sm font-black flex flex-col gap-1 ${isActive ? 'bg-sky-500 text-white shadow-lg shadow-sky-200' : 'bg-slate-100 text-slate-500 shadow-sm'}`}>
+            <div className="flex items-center gap-1.5 text-[11px] opacity-90">
+              <span>📅</span>
+              {schedule.startDateTime.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short' })}
+            </div>
+            <div className="text-base tracking-tight">
+              {schedule.startDateTime.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })} -{' '}
+              {schedule.endDateTime.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}
+            </div>
           </div>
         </div>
 
@@ -63,35 +76,43 @@ export default function ScheduleCard({ schedule, isActive, isPast }: ScheduleCar
             address={displayAddress}
             placeName={schedule.placeName}
           />
-          <div className="mt-4 flex flex-row gap-2">
-            <a
-              href={getNaverMapUrl(schedule)}
-              target="_blank"
-              rel="noreferrer"
-              className="flex-1 bg-white border border-slate-200 text-slate-600 py-3 rounded-2xl text-[11px] font-black hover:bg-slate-50 transition-all flex items-center justify-center gap-1.5 active:scale-95"
-            >
-              <img src={`${iconPath}/naver-map.webp`} alt="" className="w-4 h-4 object-contain" />
-              네이버
-            </a>
-            <a
-              href={getKakaoNaviUrl(schedule)}
-              target="_blank"
-              rel="noreferrer"
-              className="flex-1 bg-[#FEE500] text-[#191919] py-3 rounded-2xl text-[11px] font-black hover:bg-[#FADA0A] transition-all flex items-center justify-center gap-1.5 active:scale-95"
-            >
-              <img src={`${iconPath}/kakao-navi.svg`} alt="" className="w-4 h-4 object-contain" />
-              카카오
-            </a>
-            <a
-              href={getTmapUrl(schedule)}
-              target="_blank"
-              rel="noreferrer"
-              className="flex-1 bg-slate-900 text-white py-3 rounded-2xl text-[11px] font-black hover:bg-black transition-all flex items-center justify-center gap-1.5 active:scale-95"
-            >
-              <img src={`${iconPath}/tmap.svg`} alt="" className="w-4 h-4 object-contain" />
-              티맵
-            </a>
-          </div>
+          {!hasCoordinates ? (
+            <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-center">
+              <p className="text-[11px] font-black text-slate-400">
+                ⚠️ 좌표 정보가 없어 내비게이션 앱을 실행할 수 없습니다.
+              </p>
+            </div>
+          ) : (
+            <div className="mt-4 flex flex-row gap-2">
+              <a
+                href={getNaverMapUrl(schedule)}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 bg-white border border-slate-200 text-slate-600 py-3 rounded-2xl text-[11px] font-black hover:bg-slate-50 transition-all flex items-center justify-center gap-1.5 active:scale-95"
+              >
+                <img src={`${iconPath}/naver-map.webp`} alt="" className="w-4 h-4 object-contain" />
+                네이버
+              </a>
+              <a
+                href={getKakaoNaviUrl(schedule)}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 bg-[#FEE500] text-[#191919] py-3 rounded-2xl text-[11px] font-black hover:bg-[#FADA0A] transition-all flex items-center justify-center gap-1.5 active:scale-95"
+              >
+                <img src={`${iconPath}/kakao-navi.svg`} alt="" className="w-4 h-4 object-contain" />
+                카카오
+              </a>
+              <a
+                href={getTmapUrl(schedule)}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 bg-slate-900 text-white py-3 rounded-2xl text-[11px] font-black hover:bg-black transition-all flex items-center justify-center gap-1.5 active:scale-95"
+              >
+                <img src={`${iconPath}/tmap.svg`} alt="" className="w-4 h-4 object-contain" />
+                티맵
+              </a>
+            </div>
+          )}
         </div>
       )}
     </div>

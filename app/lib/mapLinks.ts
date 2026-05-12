@@ -12,21 +12,22 @@ export function getPlaceKeyword(schedule: Partial<Schedule>) {
 }
 
 export function getNaverMapUrl(schedule: Partial<Schedule>) {
-  const keyword = encodeURIComponent(getPlaceKeyword(schedule));
-  return `https://map.naver.com/p/search/${keyword}`;
+  if (!schedule.latitude || !schedule.longitude) return '';
+  const name = encodeURIComponent(schedule.placeName || '목적지');
+  // dlat: 위도, dlng: 경도
+  return `nmap://route/car?dlat=${schedule.latitude}&dlng=${schedule.longitude}&dname=${name}&appname=refresh-day`;
 }
 
 export function getKakaoNaviUrl(schedule: Partial<Schedule>) {
-  // 주소 API에서 넘어온 좌표 정보가 있다면, 좌표를 직접 사용하는 '길찾기' 링크가 가장 정확합니다.
-  if (schedule.latitude && schedule.longitude) {
-    const name = encodeURIComponent(schedule.placeName || '목적지');
-    return `https://map.kakao.com/link/to/${name},${schedule.latitude},${schedule.longitude}`;
-  }
-  const keyword = encodeURIComponent(getPlaceKeyword(schedule));
-  return `https://map.kakao.com/link/search/${keyword}`;
+  if (!schedule.latitude || !schedule.longitude) return '';
+  const name = encodeURIComponent(schedule.placeName || '목적지');
+  // x: 경도, y: 위도
+  return `kakaonavi://navigate?name=${name}&x=${schedule.longitude}&y=${schedule.latitude}`;
 }
 
 export function getTmapUrl(schedule: Partial<Schedule>) {
-  const keyword = encodeURIComponent(getPlaceKeyword(schedule));
-  return `https://www.tmap.co.kr/search?searchKeyword=${keyword}`;
+  if (!schedule.latitude || !schedule.longitude) return '';
+  const name = encodeURIComponent(schedule.placeName || '목적지');
+  // goalx: 경도, goaly: 위도
+  return `tmap://route?goalname=${name}&goalx=${schedule.longitude}&goaly=${schedule.latitude}`;
 }
