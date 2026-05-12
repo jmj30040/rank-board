@@ -26,7 +26,14 @@ export default function AdminPanel() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [scoreTab, setScoreTab] = useState<'team' | 'individual'>('team');
-  const [eventSettings, setEventSettings] = useState<EventSettings | null>(null);
+  const [eventSettings, setEventSettings] = useState<EventSettings>({
+    mainTitle: "Refresh Day",
+    eventName: "재무경영정보실 워크샵",
+    startDate: "2026-06-11",
+    endDate: "2026-06-12",
+    heroDescription:
+      "오늘의 일정과 게임 랭킹을\n한눈에 확인하고 즐거운 시간을 보내세요!",
+  });
 
   // 실시간 구독 설정
   useEffect(() => {
@@ -150,8 +157,14 @@ export default function AdminPanel() {
   };
 
   const handleSaveSettings = async () => {
-    const { mainTitle, eventName, startDate, endDate, heroDescription } = eventSettings;
     
+    if (!eventSettings) {
+      alert("행사 설정 정보를 불러오는 중입니다.");
+      return;
+    }
+
+    const { mainTitle, eventName, startDate, endDate, heroDescription } = eventSettings;
+
     if (!mainTitle || !eventName || !startDate || !endDate || !heroDescription) {
       alert('모든 필드를 입력해주세요.');
       return;
