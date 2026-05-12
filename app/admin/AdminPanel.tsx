@@ -2,32 +2,62 @@
 
 import { useState, useEffect } from 'react';
 import { addParticipant, updateParticipant, deleteParticipant as deleteParticipantService, updateScore } from '../lib/participantService';
-import { addTeam, deleteTeam } from '../lib/teamService';
+import { addTeam, updateTeam, deleteTeam } from '../lib/teamService';
 import { db } from '../lib/firebase';
-import { collection, doc, onSnapshot, query, updateDoc, increment, serverTimestamp, writeBatch, where, getDocs, setDoc } from 'firebase/firestore';
-import { useParticipants } from '@/hooks/useParticipants';
-import { useTeams } from '@/hooks/useTeams';
-import { useSchedules } from '@/hooks/useSchedules';
-import ScheduleManager from '@/components/admin/ScheduleManager';
-import { Team, Participant } from '@/types';
+import { collection, onSnapshot, query, orderBy, limit, doc, updateDoc, increment, serverTimestamp, writeBatch, where, getDocs, addDoc, deleteDoc, setDoc } from 'firebase/firestore';
+import ScheduleSection from './ScheduleSection';
+import { Team, ScoreLog, Participant, Schedule } from '../types';
 import Link from 'next/link';
 
-type TabType = 'teams' | 'participants' | 'scores' | 'schedule' | 'settings';
-
-interface EventSettings {
-  mainTitle: string;
-  eventName: string;
-  startDate: string;
-  endDate: string;
-  heroDescription: string;
-}
+type TabType = 'dashboard' | 'teams' | 'participants' | 'scores' | 'schedule' | 'settings';
 
 export default function AdminPanel() {
-  const { participants } = useParticipants();
-  const { teams } = useTeams();
-  useSchedules();
-  const [activeTab, setActiveTab] = useState<TabType>('teams');
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [scoreTab, setScoreTab] = useState<'team' | 'individual'>('team');
+  
+  // 실시간 구독 설정
+  useEffect(() => {
+    setLoading(true);
+    
+    const unsubTeams = onSnapshot(
+      collection(db, 'teams'),
+      (snap) => setTeams(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Team))),
+      (err) => { console.error("teams error", err); setError(err.message); }
+    );
+
+    const unsubParts = onSnapshot(
+      collection(db, 'participants'),
+      (snapshot) => {
+        const list = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          name: doc.data().name ?? '이름 없음',
+          department: doc.data().department ?? '부서 미입력',
+          teamId: doc.data().teamId ?? null,
+          teamName: doc.data().teamName ?? '팀 미배정',
+          teamColor: doc.data().teamColor ?? '#94A3B8',
+          score: Number(doc.data().score ?? 0),
+          createdAt: doc.data().createdAt?.toDate() ?? new Date(),
+          updatedAt: doc.data().updatedAt?.toDate() ?? new Date(),
+        } as Participant));
+        setParticipants(list);
+        setLoading(false);
+      },
+      (err) => { console.error("participants error", err); setError(err.message); }
+    );
+
+    const unsubSchedules = onSnapshot(
+      collection(db, 'schedules'),
+      (snap) => setSchedules(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Schedule))),
+      (err) => { console.error("schedules error", err); setError(err.message); }
+    );
+
+    return () => { unsubTeams(); unsubParts(); unsubSchedules(); };
+  }, []);
 
   // 행사 설정 상태
   const [eventSettings, setEventSettings] = useState({
@@ -41,7 +71,7 @@ export default function AdminPanel() {
   useEffect(() => {
     // 대시보드 가이드 및 메인 타이틀 확인을 위해 설정 데이터를 항상 구독합니다.
     const unsub = onSnapshot(doc(db, 'settings', 'event'), (snap) => {
-      if (snap.exists()) setEventSettings(snap.data() as EventSettings);
+      if (snap.exists()) setEventSettings(snap.data() as any);
     });
     return () => unsub();
   }, []);
@@ -61,6 +91,8 @@ export default function AdminPanel() {
   const [editDept, setEditDept] = useState('');
   const [editTeamId, setEditTeamId] = useState('');
 
+  // 점수 관련 상태
+  const [scoreDelta, setScoreDelta] = useState<number | ''>(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [scoreParticipantSearch, setScoreParticipantSearch] = useState('');
   const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: '', visible: false });
@@ -153,12 +185,8 @@ export default function AdminPanel() {
     try {
       await deleteTeam(id);
       showToast('팀이 삭제되었습니다.');
-    } catch (err) {
-      if (err instanceof Error) {
-        alert(err.message);
-      } else {
-        alert('팀 삭제 중 오류가 발생했습니다.');
-      }
+    } catch (err: any) {
+      alert(err.message);
     }
   };
 
@@ -226,7 +254,7 @@ export default function AdminPanel() {
     }
   };
 
-  const startEdit = (participant: Participant) => {
+  const startEdit = (participant: any) => {
     setEditingId(participant.id);
     setEditName(participant.name);
     setEditDept(participant.department || '');
@@ -254,8 +282,11 @@ export default function AdminPanel() {
     );
   });
 
+  // 대시보드 지표 계산
+  const topTeam = (teams || []).length > 0 ? [...teams].sort((a, b) => b.score - a.score)[0] : null;
 
   const tabs: { id: TabType; label: string; icon: string }[] = [
+    { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
     { id: 'teams', label: '팀 관리', icon: '🚩' },
     { id: 'participants', label: '참가자 관리', icon: '👥' },
     { id: 'scores', label: '점수 관리', icon: '🎯' },
@@ -594,7 +625,7 @@ export default function AdminPanel() {
             </div>
           )}
 
-          {activeTab === 'schedule' && <ScheduleManager />}
+          {activeTab === 'schedule' && <ScheduleSection />}
         </div>
       </main>
     </div>

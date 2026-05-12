@@ -15,14 +15,14 @@ export function subscribeParticipants(
         const data = doc.data();
         participantsData.push({
           id: doc.id,
-          name: data.name,
-          department: data.department,
-          teamId: data.teamId,
-          teamName: data.teamName,
-          teamColor: data.teamColor,
+          name: data.name ?? '이름 없음',
+          department: data.department ?? '부서 미입력',
+          teamId: data.teamId ?? null,
+          teamName: data.teamName ?? '팀 미배정',
+          teamColor: data.teamColor ?? '#94A3B8',
           score: Number(data.score ?? 0),
-          createdAt: data.createdAt.toDate(),
-          updatedAt: data.updatedAt.toDate(),
+          createdAt: data.createdAt?.toDate() ?? new Date(),
+          updatedAt: data.updatedAt?.toDate() ?? new Date(),
         });
       });
       onChange(participantsData);
