@@ -47,3 +47,7 @@ export interface Schedule {
   createdAt: Date;
   updatedAt: Date;
 }
+
+declare global {
+  var kakao: any;
+}
