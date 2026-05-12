@@ -9,7 +9,7 @@ import ScheduleManager from '../components/admin/ScheduleManager'; // 경로 수
 import { Team, ScoreLog, Participant, Schedule } from '../types';
 import Link from 'next/link';
 
-type TabType = 'dashboard' | 'teams' | 'participants' | 'scores' | 'schedule' | 'settings';
+type TabType = 'teams' | 'participants' | 'scores' | 'schedule' | 'settings';
 type EventSettings = {
   mainTitle?: string;
   eventName?: string;
@@ -24,7 +24,7 @@ export default function AdminPanel() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  const [activeTab, setActiveTab] = useState<TabType>('teams');
   const [scoreTab, setScoreTab] = useState<'team' | 'individual'>('team');
   const [eventSettings, setEventSettings] = useState<EventSettings>({
     mainTitle: "Refresh Day",
@@ -291,15 +291,11 @@ export default function AdminPanel() {
     );
   });
 
-  // 대시보드 지표 계산
-  const topTeam = (teams || []).length > 0 ? [...teams].sort((a, b) => b.score - a.score)[0] : null;
-
   const tabs: { id: TabType; label: string; icon: string }[] = [
-    { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
-    { id: 'teams', label: '팀 관리', icon: '🚩' },
-    { id: 'participants', label: '참가자 관리', icon: '👥' },
-    { id: 'scores', label: '점수 관리', icon: '🎯' },
-    { id: 'schedule', label: '일정 관리', icon: '📅' },
+    { id: 'teams', label: '팀 관리', icon: '' },
+    { id: 'participants', label: '참가자 관리', icon: '' },
+    { id: 'scores', label: '점수 관리', icon: '' },
+    { id: 'schedule', label: '일정 관리', icon: '' },
     { id: 'settings', label: '행사 설정', icon: '⚙️' },
   ];
 
