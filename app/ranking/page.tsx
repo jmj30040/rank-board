@@ -1,98 +1,113 @@
 'use client';
 
-import { useParticipants } from '../hooks/useParticipants';
-import { calculateRankings } from '../utils/ranking';
+import { useState, useEffect } from 'react';
+import { db } from '../lib/firebase';
+import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
 import Link from 'next/link';
+import { Team, Participant } from '../types';
+import RankingPageHero from './RankingPageHero';
+import TeamRankingSection from './TeamRankingSection';
+import PersonalRankingSection from './PersonalRankingSection';
+
+// 공동 순위 계산 함수
+function calculateRanks<T extends { score: number }>(items: T[]) {
+  let previousScore: number | null = null;
+  let previousRank = 0;
+
+  return [...items]
+    .sort((a, b) => b.score - a.score)
+    .map((item, index) => {
+      const rank =
+        previousScore !== null && item.score === previousScore
+          ? previousRank
+          : index + 1;
+
+      previousScore = item.score;
+      previousRank = rank;
+
+      return {
+        ...item,
+        rank,
+      };
+    });
+}
 
 export default function RankingPage() {
-  const { participants, loading } = useParticipants();
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsubTeams = onSnapshot(
+      query(collection(db, 'teams'), orderBy('score', 'desc')),
+      (snap) => {
+        setTeams(snap.docs.map(doc => ({ 
+          id: doc.id, 
+          name: doc.data().name ?? "",
+          color: doc.data().color ?? "#3b82f6",
+          score: Number(doc.data().score ?? 0),
+          ...doc.data() 
+        } as Team)));
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Teams error:", err);
+        setError("랭킹 데이터를 불러오지 못했습니다. Firestore 권한을 확인해주세요.");
+      }
+    );
+
+    const unsubParts = onSnapshot(
+      query(collection(db, 'participants'), orderBy('score', 'desc')),
+      (snap) => {
+        setParticipants(snap.docs.map(doc => ({ 
+          id: doc.id, 
+          name: doc.data().name ?? "",
+          department: doc.data().department ?? "부서 미입력",
+          teamId: doc.data().teamId ?? null,
+          teamName: doc.data().teamName ?? "팀 미배정",
+          teamColor: doc.data().teamColor ?? "#94A3B8",
+          score: Number(doc.data().score ?? 0),
+          ...doc.data() 
+        } as Participant)));
+      },
+      (err) => {
+        console.error("Participants error:", err);
+        setError("랭킹 데이터를 불러오지 못했습니다.");
+      }
+    );
+
+    return () => { unsubTeams(); unsubParts(); };
+  }, []);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-slate-400 font-black animate-pulse">실시간 랭킹 집계 중...</div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-slate-400 font-black animate-pulse uppercase tracking-widest text-xs">Ranking Synchronizing...</div>
+        </div>
       </div>
     );
   }
 
-  const rankings = calculateRankings(participants);
-
-  const topThree = rankings.slice(0, 3);
-  const others = rankings.slice(3);
+  const teamRankings = calculateRanks(teams);
+  const personalRankings = calculateRanks(participants);
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans">
-      {/* 헤더 */}
-      <div className="bg-white border-b border-slate-100 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-slate-500 hover:text-emerald-600 transition-colors flex items-center gap-1 font-medium">
-              <span className="text-lg">←</span> 돌아가기
-            </Link>
-            <h1 className="text-xl font-black text-slate-800 tracking-tight">Refresh Day Ranking</h1>
-            <div className="w-10"></div>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-slate-50 font-sans pb-20">
+      <RankingPageHero />
 
-      <div className="max-w-4xl mx-auto px-4 py-10">
-        {/* Top 3 Podium Section */}
-        <div className="mb-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
-            {/* 2위 */}
-            {topThree[1] && (
-              <div className="order-2 md:order-1 bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-center relative overflow-hidden transition-all hover:shadow-xl">
-                <div className="absolute top-0 left-0 w-full h-2 bg-slate-300"></div>
-                <div className="text-4xl mb-4">🥈</div>
-                <div className="text-2xl font-black text-slate-900">{topThree[1].name}</div>
-                <div className="text-sm text-slate-400 font-bold mb-4">{topThree[1].team}</div>
-                <div className="text-3xl font-black text-slate-500">{topThree[1].score}점</div>
-              </div>
-            )}
-            {/* 1위 */}
-            {topThree[0] && (
-              <div className="order-1 md:order-2 bg-white p-10 rounded-[3rem] shadow-xl border-2 border-emerald-100 text-center relative overflow-hidden transition-all hover:scale-105">
-                <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-emerald-400 to-sky-400"></div>
-                <div className="text-6xl mb-4 animate-bounce">👑</div>
-                <div className="text-3xl font-black text-slate-900 mb-1">{topThree[0].name}</div>
-                <div className="text-sm text-emerald-500 font-black mb-6 uppercase tracking-widest">{topThree[0].team}</div>
-                <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-sky-600">
-                  {topThree[0].score}점
-                </div>
-              </div>
-            )}
-            {/* 3위 */}
-            {topThree[2] && (
-              <div className="order-3 bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-center relative overflow-hidden transition-all hover:shadow-xl">
-                <div className="absolute top-0 left-0 w-full h-2 bg-orange-200"></div>
-                <div className="text-4xl mb-4">🥉</div>
-                <div className="text-2xl font-black text-slate-900">{topThree[2].name}</div>
-                <div className="text-sm text-slate-400 font-bold mb-4">{topThree[2].team}</div>
-                <div className="text-3xl font-black text-orange-400">{topThree[2].score}점</div>
-              </div>
-            )}
+      <div className="max-w-[1400px] mx-auto px-4 md:px-10">
+        {error && (
+          <div className="bg-rose-50 border border-rose-100 p-4 rounded-2xl text-rose-500 font-bold text-center mb-8">
+            {error}
           </div>
-        </div>
+        )}
 
-        {/* 나머지 순위 리스트 */}
-        <div className="space-y-3">
-          {others.map((participant) => (
-            <div
-              key={participant.id}
-              className="bg-white p-5 rounded-[1.5rem] shadow-sm border border-slate-100 flex items-center justify-between transition-all hover:bg-slate-50"
-            >
-              <div className="flex items-center gap-6">
-                <div className="w-10 h-10 flex items-center justify-center font-black text-slate-300 text-lg italic">
-                  {participant.rank}
-                </div>
-                <div>
-                  <div className="font-black text-slate-800">{participant.name}</div>
-                  <div className="text-xs text-slate-400 font-bold uppercase">{participant.team}</div>
-                </div>
-              </div>
-              <div className="text-xl font-black text-slate-600">{participant.score}점</div>
-            </div>
-          ))}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+          <TeamRankingSection rankings={teamRankings} participants={participants} />
+          <PersonalRankingSection rankings={personalRankings} />
         </div>
       </div>
     </div>

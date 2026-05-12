@@ -5,9 +5,10 @@
 ## 기능
 
 - 참가자 관리 (등록, 수정, 삭제)
-- 실시간 점수 관리 및 랭킹 표시
+- 실시간 점수 관리 및 실시간 검색 필터링
 - 관리자 패널 - 탭 기반 UI
-  - 참가자 관리 탭: 참가자 CRUD, 점수 조정
+  - 정보 관리 탭: 참가자 CRUD, 실시간 검색 기능
+  - 점수 입력 탭: 사유 입력 없는 빠른 점수 반영 시스템
   - 일정 관리 탭: 장소별 일정 CRUD, 카카오 주소 검색
 - 공개 랭킹 페이지 (/ranking)
 - 일정 확인 페이지 (/schedule) - 시간별 상세 일정, 카카오맵 표시, 네비게이션 바로가기
@@ -83,6 +84,12 @@ service cloud.firestore {
       allow read, write: if true;
     }
     match /schedules/{document} {
+      allow read, write: if true;
+    }
+    match /teams/{document} {
+      allow read, write: if true;
+    }
+    match /settings/{document} {
       allow read, write: if true;
     }
   }

@@ -62,6 +62,9 @@ export default function ScheduleSection() {
       return;
     }
 
+    const confirmMessage = editingId ? '일정을 수정하시겠습니까?' : '새로운 일정을 추가하시겠습니까?';
+    if (!window.confirm(confirmMessage)) return;
+
     try {
       const scheduleData = {
         title: formData.title,
@@ -265,42 +268,43 @@ export default function ScheduleSection() {
           <div className="text-center py-8 text-slate-600">등록된 일정이 없습니다.</div>
         ) : (
           schedules.map((schedule) => (
-            <div key={schedule.id} className="border border-slate-200 p-4 rounded-lg bg-white">
-              <div className="flex justify-between items-start mb-2">
+            <div key={schedule.id} className="border border-slate-100 p-6 rounded-[2rem] bg-white shadow-sm hover:shadow-md transition-all">
+              <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h4 className="font-semibold text-lg text-slate-900">{schedule.title}</h4>
+                  <h4 className="font-black text-xl text-slate-900 tracking-tight">{schedule.title}</h4>
                   {schedule.description && (
-                    <p className="text-sm text-slate-600">{schedule.description}</p>
+                    <p className="text-sm text-slate-500 mt-1">{schedule.description}</p>
                   )}
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleEdit(schedule)}
-                    className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 text-sm"
+                    className="bg-amber-100 text-amber-600 px-4 py-2 rounded-xl hover:bg-amber-200 font-black text-xs transition-colors"
                   >
                     수정
                   </button>
                   <button
                     onClick={() => handleDelete(schedule.id)}
-                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm"
+                    className="bg-rose-100 text-rose-600 px-4 py-2 rounded-xl hover:bg-rose-200 font-black text-xs transition-colors"
                   >
                     삭제
                   </button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-sm text-slate-700 my-2">
-                <div>
-                  <span className="font-semibold">시간:</span> {schedule.startDateTime.toLocaleString()}{' '}
-                  ~ {schedule.endDateTime.toLocaleString()}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-sm text-slate-700">
+                <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg font-bold">
+                  <span className="text-slate-400">⏰</span>
+                  {schedule.startDateTime.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} - {schedule.endDateTime.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
                 </div>
-                <div>
-                  <span className="font-semibold">장소:</span> {schedule.placeName}
+                <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg font-bold">
+                  <span className="text-slate-400">📍</span>
+                  {schedule.placeName}
                 </div>
               </div>
 
               {schedule.address && (
-                <div className="text-sm text-slate-600">
+                <div className="text-xs text-slate-400 mt-3 ml-1 font-medium">
                   {schedule.roadAddress || schedule.address}
                 </div>
               )}

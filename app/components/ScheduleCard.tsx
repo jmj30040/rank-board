@@ -16,6 +16,7 @@ export default function ScheduleCard({ schedule, isActive, isPast, isHighlighted
   const displayAddress = schedule.roadAddress || schedule.address || '';
   const iconPath = '/icons';
 
+  const kakaoNaviUrl = getKakaoNaviUrl(schedule);
   // 좌표 정보가 유효한지 확인 (0이 아니고 값이 존재해야 함)
   const hasCoordinates = schedule.latitude && schedule.longitude && schedule.latitude !== 0 && schedule.longitude !== 0;
 
@@ -94,13 +95,15 @@ export default function ScheduleCard({ schedule, isActive, isPast, isHighlighted
                 네이버
               </a>
               <a
-                href={getKakaoNaviUrl(schedule)}
-                target="_blank"
+              href={kakaoNaviUrl || '#'}
                 rel="noreferrer"
-                className="flex-1 bg-[#FEE500] text-[#191919] py-3 rounded-2xl text-[11px] font-black hover:bg-[#FADA0A] transition-all flex items-center justify-center gap-1.5 active:scale-95"
+              className={`flex-1 bg-[#FEE500] text-[#191919] py-3 rounded-2xl text-[11px] font-black transition-all flex items-center justify-center gap-1.5 active:scale-95 ${
+                !kakaoNaviUrl ? 'pointer-events-none opacity-40' : 'hover:bg-[#FADA0A]'
+              }`}
+              aria-disabled={!kakaoNaviUrl}
               >
                 <img src={`${iconPath}/kakao-navi.svg`} alt="" className="w-4 h-4 object-contain" />
-                카카오
+              카카오내비
               </a>
               <a
                 href={getTmapUrl(schedule)}

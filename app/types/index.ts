@@ -1,7 +1,19 @@
+export interface Team {
+  id: string;
+  name: string;
+  color: string;
+  score: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface Participant {
   id: string;
   name: string;
-  team: string;
+  department: string; // 부서 필드 복구
+  teamId: string | null;
+  teamName: string;
+  teamColor: string;
   score: number;
   createdAt: Date;
   updatedAt: Date;
@@ -9,11 +21,12 @@ export interface Participant {
 
 export interface ScoreLog {
   id: string;
-  participantId: string;
-  participantName: string;
-  team: string;
+  targetType: 'participant' | 'team';
+  targetId: string;
+  targetName: string;
+  teamId?: string;
+  teamName?: string;
   delta: number;
-  reason: string;
   beforeScore: number;
   afterScore: number;
   createdAt: Date;

@@ -21,12 +21,14 @@ export function getNaverMapUrl(schedule: Partial<Schedule>) {
 }
 
 export function getKakaoNaviUrl(schedule: Partial<Schedule>) {
-  const x = Number(schedule.longitude); // 경도
-  const y = Number(schedule.latitude);  // 위도
-  if (!x || !y || isNaN(x) || isNaN(y)) return '';
+  const lat = Number(schedule.latitude);
+  const lng = Number(schedule.longitude);
+
+  if (!lat || !lng || isNaN(lat) || isNaN(lng)) return '';
 
   const name = encodeURIComponent(schedule.placeName || '목적지');
-  return `https://map.kakao.com/link/to/${name},${y},${x}`;
+  // 카카오내비 앱 딥링크: x=경도, y=위도
+  return `kakaonavi://navigate?name=${name}&x=${lng}&y=${lat}`;
 }
 
 export function getTmapUrl(schedule: Partial<Schedule>) {

@@ -17,6 +17,8 @@ export default function ScheduleCard({ schedule, isActive, isPast }: ScheduleCar
   // 아이콘 업로드 경로 (public/icons 폴더 내 저장)
   const iconPath = '/icons';
 
+  const kakaoNaviUrl = getKakaoNaviUrl(schedule);
+
   return (
     <div
       className={`p-6 rounded-[2rem] border transition-all ${
@@ -80,10 +82,12 @@ export default function ScheduleCard({ schedule, isActive, isPast }: ScheduleCar
               네이버지도
             </a>
             <a
-              href={getKakaoNaviUrl(schedule)}
-              target="_blank"
+              href={kakaoNaviUrl || '#'}
               rel="noreferrer"
-              className="flex-1 bg-[#FEE500] text-[#191919] py-3 rounded-2xl text-[11px] font-black hover:bg-[#FADA0A] transition-all flex items-center justify-center gap-1.5 active:scale-95"
+              className={`flex-1 bg-[#FEE500] text-[#191919] py-3 rounded-2xl text-[11px] font-black transition-all flex items-center justify-center gap-1.5 active:scale-95 ${
+                !kakaoNaviUrl ? 'pointer-events-none opacity-40' : 'hover:bg-[#FADA0A]'
+              }`}
+              aria-disabled={!kakaoNaviUrl}
             >
               <img 
                 src={`${iconPath}/kakao-navi.svg`} 

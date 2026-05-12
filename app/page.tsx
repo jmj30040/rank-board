@@ -1,6 +1,25 @@
+'use client';
+
 import Link from 'next/link';
+import { useEventSettings } from './hooks/useEventSettings';
+
+function formatEventDateRange(startDate: string, endDate: string) {
+  if (!startDate || !endDate) return "";
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  
+  const yyyy = start.getFullYear();
+  const startMM = String(start.getMonth() + 1).padStart(2, "0");
+  const startDD = String(start.getDate()).padStart(2, "0");
+  const endMM = String(end.getMonth() + 1).padStart(2, "0");
+  const endDD = String(end.getDate()).padStart(2, "0");
+
+  return `${yyyy}.${startMM}.${startDD} - ${endMM}.${endDD}`;
+}
 
 export default function Home() {
+  const { settings } = useEventSettings();
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
       {/* Hero Section */}
@@ -9,13 +28,13 @@ export default function Home() {
           <div className="flex justify-center mb-8">
             <img src="/icons/farmsco.svg" alt="Farmsco" className="h-10 md:h-12 w-auto" />
           </div>
-          <h1 className="text-6xl font-black mb-4 tracking-tight">Refresh Day</h1>
-          <p className="text-xl font-medium opacity-90 mb-2">재무경영정보실 워크샵</p>
+          <h1 className="text-6xl font-black mb-4 tracking-tight">{settings.mainTitle}</h1>
+          <p className="text-xl font-medium opacity-90 mb-2">{settings.eventName}</p>
           <div className="inline-block bg-white/20 backdrop-blur-md px-4 py-1 rounded-full text-sm font-bold border border-white/30">
-            2026.06.11 - 06.12
+            {formatEventDateRange(settings.startDate, settings.endDate)}
           </div>
-          <p className="mt-8 text-lg font-light leading-relaxed">
-            오늘의 일정과 게임 랭킹을<br />한눈에 확인하고 즐거운 시간을 보내세요!
+          <p className="mt-8 text-lg font-light leading-relaxed whitespace-pre-line">
+            {settings.heroDescription}
           </p>
         </div>
       </div>
