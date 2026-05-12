@@ -30,7 +30,7 @@ export default function AdminPanel() {
       (err) => { console.error("teams error", err); setError(err.message); }
     );
 
-    const unsubParts = onSnapshot(
+    const unsubParts = onSnapshot( // participants 구독
       collection(db, 'participants'),
       (snapshot) => {
         const list = snapshot.docs.map((doc) => ({
@@ -45,35 +45,23 @@ export default function AdminPanel() {
           updatedAt: doc.data().updatedAt?.toDate() ?? new Date(),
         } as Participant));
         setParticipants(list);
-        setLoading(false);
       },
       (err) => { console.error("participants error", err); setError(err.message); }
     );
 
-    const unsubSchedules = onSnapshot(
+    const unsubSchedules = onSnapshot( // schedules 구독
       collection(db, 'schedules'),
       (snap) => setSchedules(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Schedule))),
       (err) => { console.error("schedules error", err); setError(err.message); }
     );
 
-    return () => { unsubTeams(); unsubParts(); unsubSchedules(); };
-  }, []);
-
-  // 행사 설정 상태
-  const [eventSettings, setEventSettings] = useState({
-    mainTitle: '',
-    eventName: '',
-    startDate: '',
-    endDate: '',
-    heroDescription: ''
-  });
-
-  useEffect(() => {
-    // 대시보드 가이드 및 메인 타이틀 확인을 위해 설정 데이터를 항상 구독합니다.
-    const unsub = onSnapshot(doc(db, 'settings', 'event'), (snap) => {
+    const unsubSettings = onSnapshot(doc(db, 'settings', 'event'), (snap) => { // settings 구독
       if (snap.exists()) setEventSettings(snap.data() as any);
-    });
-    return () => unsub();
+    }, (err) => { console.error("settings error", err); setError(err.message); });
+
+    setLoading(false); // 모든 구독이 시작된 후 로딩 상태 해제
+
+    return () => { unsubTeams(); unsubParts(); unsubSchedules(); unsubSettings(); };
   }, []);
 
   // 팀 관련 상태
