@@ -33,7 +33,13 @@ export default function AdminPage() {
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">Admin Login</h1>
           <p className="text-slate-400 mt-2 font-medium">관리자 비밀번호를 입력하세요.</p>
         </div>
-        <div className="space-y-6">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleLogin();
+          }}
+          className="space-y-6"
+        >
           <input
             type="password"
             placeholder="비밀번호"
@@ -43,12 +49,12 @@ export default function AdminPage() {
           />
           {error && <p className="text-rose-500 text-sm font-bold text-center">{error}</p>}
           <button
-            onClick={handleLogin}
+            type="submit"
             className="w-full bg-slate-900 text-white py-5 rounded-[1.5rem] hover:bg-black transition-all font-black text-lg active:scale-95 shadow-xl shadow-slate-200"
           >
             로그인
           </button>
-        </div>
+        </form>
       </div>
     </div>
   );

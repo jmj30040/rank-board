@@ -97,7 +97,7 @@ export default function KakaoMap({ latitude, longitude, placeName }: KakaoMapPro
 
         if (placeName) {
           const infowindow = new kakao.maps.InfoWindow({
-            content: `<div style="padding:5px;font-size:12px;">${placeName}</div>`,
+            content: `<div style="background:#ffffff;color:#0f172a;border-radius:9999px;padding:4px 10px;font-size:12px;font-weight:600;box-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);">${placeName}</div>`,
           }) as KakaoInfoWindowInstance;
 
           infowindow.open(mapInstance, marker);
