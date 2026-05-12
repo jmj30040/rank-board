@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { addParticipant, updateParticipant, deleteParticipant as deleteParticipantService, updateScore } from '../lib/participantService';
 import { addTeam, updateTeam, deleteTeam } from '../lib/teamService';
 import { db } from '../lib/firebase';
-import { collection, onSnapshot, query, orderBy, limit, doc, updateDoc, increment, serverTimestamp, writeBatch, where, getDocs, addDoc, deleteDoc, setDoc } from 'firebase/firestore';
-import ScheduleSection from './ScheduleSection';
+import { collection, onSnapshot, query, orderBy, limit, doc, updateDoc, increment, serverTimestamp, writeBatch, where, getDocs, addDoc, deleteDoc, setDoc } from 'firebase/firestore'; // deleteDoc 추가
+import ScheduleManager from '../components/admin/ScheduleManager'; // 경로 수정 및 컴포넌트 이름 변경
 import { Team, ScoreLog, Participant, Schedule } from '../types';
 import Link from 'next/link';
 
@@ -613,7 +613,7 @@ export default function AdminPanel() {
             </div>
           )}
 
-          {activeTab === 'schedule' && <ScheduleSection />}
+          {activeTab === 'schedule' && <ScheduleManager />}
         </div>
       </main>
     </div>
