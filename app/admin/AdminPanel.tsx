@@ -10,6 +10,13 @@ import { Team, ScoreLog, Participant, Schedule } from '../types';
 import Link from 'next/link';
 
 type TabType = 'dashboard' | 'teams' | 'participants' | 'scores' | 'schedule' | 'settings';
+type EventSettings = {
+  mainTitle?: string;
+  eventName?: string;
+  startDate?: string;
+  endDate?: string;
+ heroDescription?: string;
+};
 
 export default function AdminPanel() {
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -19,7 +26,8 @@ export default function AdminPanel() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [scoreTab, setScoreTab] = useState<'team' | 'individual'>('team');
-  
+  const [eventSettings, setEventSettings] = useState<EventSettings | null>(null);
+
   // 실시간 구독 설정
   useEffect(() => {
     setLoading(true);
