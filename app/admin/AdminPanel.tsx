@@ -17,6 +17,13 @@ type EventSettings = {
   endDate?: string;
  heroDescription?: string;
 };
+type PendingScoreUpdate = {
+  type: 'participant' | 'team';
+  id: string;
+  name: string;
+  currentScore: number;
+  delta: number;
+} | null;
 
 export default function AdminPanel() {
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -98,6 +105,7 @@ export default function AdminPanel() {
   const [scoreDelta, setScoreDelta] = useState<number | ''>(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [scoreParticipantSearch, setScoreParticipantSearch] = useState('');
+  const [pendingScoreUpdate, setPendingScoreUpdate] = useState<PendingScoreUpdate>(null);
   const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: '', visible: false });
 
   const showToast = (message: string) => { setToast({ message, visible: true }); };
@@ -231,16 +239,37 @@ export default function AdminPanel() {
     setEditingId(null); setEditName(''); setEditDept(''); setEditTeamId('');
   };
 
-  const handleScoreUpdate = async (type: 'participant' | 'team', id: string, delta: number | string) => {
+  const requestScoreUpdate = (type: 'participant' | 'team', id: string, delta: number | string) => {
     const numericDelta = Number(delta);
     if (isNaN(numericDelta)) return;
+    if (numericDelta === 0) return;
+
+    const target = type === 'participant'
+      ? participants.find((participant) => participant.id === id)
+      : teams.find((team) => team.id === id);
+
+    if (!target) return;
+
+    setPendingScoreUpdate({
+      type,
+      id,
+      name: target.name,
+      currentScore: Number(target.score ?? 0),
+      delta: numericDelta,
+    });
+  };
+
+  const handleScoreUpdate = async () => {
+    if (!pendingScoreUpdate) return;
+
+    const { type, id, delta } = pendingScoreUpdate;
 
     if (type === 'participant') {
-      await updateScore(id, numericDelta);
+      await updateScore(id, delta);
     } else {
       try {
         await updateDoc(doc(db, 'teams', id), {
-          score: increment(numericDelta),
+          score: increment(delta),
           updatedAt: serverTimestamp(),
         });
       } catch (err) {
@@ -249,6 +278,7 @@ export default function AdminPanel() {
       }
     }
     showToast('점수가 반영되었습니다.');
+    setPendingScoreUpdate(null);
   };
 
   const handleDeleteParticipant = async (id: string) => {
@@ -324,8 +354,8 @@ export default function AdminPanel() {
       </aside>
 
       {/* 메인 콘텐츠 영역 */}
-      <main className="flex-1 p-6 md:p-12 overflow-y-auto">
-        <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 min-h-[600px]">
+      <main className="min-w-0 flex-1 p-4 sm:p-6 md:p-12 overflow-y-auto">
+        <div className="bg-white p-4 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] shadow-sm border border-slate-100 min-h-[600px]">
           {activeTab === 'teams' && (
             <div className="animate-in fade-in duration-500">
               <div className="flex justify-between items-center mb-6">
@@ -536,7 +566,7 @@ export default function AdminPanel() {
                         <div className="flex flex-col gap-4">
                           <div className="grid grid-cols-4 gap-2">
                             {['+10', '+5', '-5', '-10'].map(val => (
-                              <button key={val} onClick={() => handleScoreUpdate('team', team.id, val)} className="py-3 bg-slate-50 rounded-xl font-black text-sm hover:bg-sky-500 hover:text-white transition-all active:scale-95">{val}</button>
+                              <button key={val} onClick={() => requestScoreUpdate('team', team.id, val)} className="py-3 bg-slate-50 rounded-xl font-black text-sm hover:bg-sky-500 hover:text-white transition-all active:scale-95">{val}</button>
                             ))}
                           </div>
                           <div className="flex gap-2">
@@ -546,7 +576,7 @@ export default function AdminPanel() {
                               className="flex-1 p-3 border border-slate-100 rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-sky-100"
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
-                                  handleScoreUpdate('team', team.id, (e.target as HTMLInputElement).value);
+                                  requestScoreUpdate('team', team.id, (e.target as HTMLInputElement).value);
                                   (e.target as HTMLInputElement).value = '';
                                 }
                               }}
@@ -570,16 +600,16 @@ export default function AdminPanel() {
                 ) : (
                   <div className="space-y-4">
                     {filteredScoreParticipants.map(p => (
-                      <div key={p.id} className="p-6 rounded-[2rem] border border-slate-100 bg-white shadow-sm flex items-center justify-between">
-                        <div>
-                          <p className="font-black text-slate-800">{p.name} <span className="text-xs text-slate-400 ml-1">{p.department}</span></p>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{p.teamName}</p>
+                      <div key={p.id} className="p-4 sm:p-6 rounded-[2rem] border border-slate-100 bg-white shadow-sm flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="min-w-0">
+                          <p className="font-black text-slate-800 truncate">{p.name} <span className="text-xs text-slate-400 ml-1">{p.department}</span></p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">{p.teamName}</p>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:w-auto lg:justify-end">
                           <span className="text-xl font-black text-sky-500 w-16 text-right">{p.score}점</span>
-                          <div className="flex gap-1">
+                          <div className="grid grid-cols-4 gap-1 sm:flex">
                             {['+10', '+5', '-5', '-10'].map(val => (
-                              <button key={val} onClick={() => handleScoreUpdate('participant', p.id, parseInt(val))} className="w-10 h-10 bg-slate-50 rounded-lg font-black text-xs hover:bg-emerald-500 hover:text-white transition-all">{val}</button>
+                              <button key={val} onClick={() => requestScoreUpdate('participant', p.id, parseInt(val))} className="h-10 min-w-0 bg-slate-50 rounded-lg font-black text-xs hover:bg-emerald-500 hover:text-white transition-all sm:w-10">{val}</button>
                             ))}
                           </div>
                         </div>
@@ -633,6 +663,45 @@ export default function AdminPanel() {
           {activeTab === 'schedule' && <ScheduleManager />}
         </div>
       </main>
+
+      {pendingScoreUpdate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/45 px-4">
+          <div className="w-full max-w-sm rounded-[2rem] bg-white p-6 shadow-2xl border border-slate-100">
+            <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2">점수 변경 확인</p>
+            <h3 className="text-xl font-black text-slate-900 mb-3">{pendingScoreUpdate.name}</h3>
+            <div className="rounded-2xl bg-slate-50 p-4 mb-6">
+              <div className="flex items-center justify-between text-sm font-bold text-slate-500">
+                <span>현재 점수</span>
+                <span>{pendingScoreUpdate.currentScore}점</span>
+              </div>
+              <div className="mt-2 flex items-center justify-between">
+                <span className="text-sm font-bold text-slate-500">변경 점수</span>
+                <span className={`text-2xl font-black ${pendingScoreUpdate.delta > 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                  {pendingScoreUpdate.delta > 0 ? '+' : ''}{pendingScoreUpdate.delta}점
+                </span>
+              </div>
+              <div className="mt-2 flex items-center justify-between text-sm font-black text-slate-900">
+                <span>변경 후</span>
+                <span>{pendingScoreUpdate.currentScore + pendingScoreUpdate.delta}점</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setPendingScoreUpdate(null)}
+                className="py-3 rounded-xl bg-slate-100 text-slate-500 font-black hover:bg-slate-200 transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleScoreUpdate}
+                className="py-3 rounded-xl bg-slate-900 text-white font-black hover:bg-black transition-colors"
+              >
+                반영
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
