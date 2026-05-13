@@ -13,13 +13,14 @@ interface ScheduleCardProps {
 }
 
 export default function ScheduleCard({ schedule, isActive, isPast, isHighlighted }: ScheduleCardProps) {
-  const hasLocation = !!(schedule.placeName || schedule.address || schedule.roadAddress);
+  const hasAddress = !!(schedule.address || schedule.roadAddress);
   const displayAddress = schedule.roadAddress || schedule.address || '';
   const iconPath = '/icons';
 
   const kakaoNaviUrl = getKakaoNaviUrl(schedule);
   // 좌표 정보가 유효한지 확인 (0이 아니고 값이 존재해야 함)
-  const hasCoordinates = schedule.latitude && schedule.longitude && schedule.latitude !== 0 && schedule.longitude !== 0;
+  const hasCoordinates = Boolean(schedule.latitude && schedule.longitude && schedule.latitude !== 0 && schedule.longitude !== 0);
+  const showMapAndNavigation = hasAddress && hasCoordinates;
 
   return (
     <div
@@ -70,52 +71,44 @@ export default function ScheduleCard({ schedule, isActive, isPast, isHighlighted
         </div>
       </div>
 
-      {hasLocation && (
+      {showMapAndNavigation && (
         <div className="mt-6 pt-6 border-t border-slate-100">
           <KakaoMap
             latitude={schedule.latitude}
             longitude={schedule.longitude}
             placeName={schedule.placeName}
           />
-          {!hasCoordinates ? (
-            <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-center">
-              <p className="text-[11px] font-black text-slate-400">
-                ⚠️ 좌표 정보가 없어 내비게이션 앱을 실행할 수 없습니다.
-              </p>
-            </div>
-          ) : (
-            <div className="mt-4 flex flex-row gap-2">
-              <a
-                href={getNaverMapUrl(schedule)}
-                target="_blank"
-                rel="noreferrer"
-                className="flex-1 bg-white border border-slate-200 text-slate-600 py-3 rounded-2xl text-[11px] font-black hover:bg-slate-50 transition-all flex items-center justify-center gap-1.5 active:scale-95"
-              >
-                <Image src={`${iconPath}/naver-map.webp`} alt="" width={16} height={16} className="object-contain" />
-                네이버
-              </a>
-              <a
+          <div className="mt-4 flex flex-row gap-2">
+            <a
+              href={getNaverMapUrl(schedule)}
+              target="_blank"
+              rel="noreferrer"
+              className="flex-1 bg-white border border-slate-200 text-slate-600 py-3 rounded-2xl text-[11px] font-black hover:bg-slate-50 transition-all flex items-center justify-center gap-1.5 active:scale-95"
+            >
+              <Image src={`${iconPath}/naver-map.webp`} alt="" width={16} height={16} className="object-contain" />
+              네이버
+            </a>
+            <a
               href={kakaoNaviUrl || '#'}
-                rel="noreferrer"
+              rel="noreferrer"
               className={`flex-1 bg-[#FEE500] text-[#191919] py-3 rounded-2xl text-[11px] font-black transition-all flex items-center justify-center gap-1.5 active:scale-95 ${
                 !kakaoNaviUrl ? 'pointer-events-none opacity-40' : 'hover:bg-[#FADA0A]'
               }`}
               aria-disabled={!kakaoNaviUrl}
-              >
-                <Image src={`${iconPath}/kakao-navi.svg`} alt="" width={16} height={16} className="object-contain" />
+            >
+              <Image src={`${iconPath}/kakao-navi.svg`} alt="" width={16} height={16} className="object-contain" />
               카카오내비
-              </a>
-              <a
-                href={getTmapUrl(schedule)}
-                target="_blank"
-                rel="noreferrer"
-                className="flex-1 bg-slate-900 text-white py-3 rounded-2xl text-[11px] font-black hover:bg-black transition-all flex items-center justify-center gap-1.5 active:scale-95"
-              >
-                <Image src={`${iconPath}/tmap.svg`} alt="" width={16} height={16} className="object-contain" />
-                티맵
-              </a>
-            </div>
-          )}
+            </a>
+            <a
+              href={getTmapUrl(schedule)}
+              target="_blank"
+              rel="noreferrer"
+              className="flex-1 bg-slate-900 text-white py-3 rounded-2xl text-[11px] font-black hover:bg-black transition-all flex items-center justify-center gap-1.5 active:scale-95"
+            >
+              <Image src={`${iconPath}/tmap.svg`} alt="" width={16} height={16} className="object-contain" />
+              티맵
+            </a>
+          </div>
         </div>
       )}
     </div>

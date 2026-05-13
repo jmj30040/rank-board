@@ -59,12 +59,23 @@ export default function ScheduleManager() {
     }));
   };
 
+  const handleClearAddress = () => {
+    setSelectedAddress(null);
+    setFormData((prev) => ({
+      ...prev,
+      placeName: '',
+      address: '',
+      roadAddress: '',
+      latitude: 0,
+      longitude: 0,
+    }));
+  };
+
   const handleSubmit = async () => {
     if (
       !formData.title.trim() ||
       !formData.startDateTime ||
-      !formData.endDateTime ||
-      !formData.placeName.trim()
+      !formData.endDateTime
     ) {
       alert('필수 항목을 입력하세요.');
       return;
@@ -232,7 +243,7 @@ export default function ScheduleManager() {
                   value={formData.placeName}
                   readOnly
                   className="flex-1 p-2 border border-slate-300 rounded text-slate-900 bg-slate-100"
-                  placeholder="주소 검색으로 선택"
+                  placeholder="주소 검색으로 선택 (선택)"
                 />
                 <button
                   onClick={() => setShowAddressModal(true)}
@@ -240,6 +251,14 @@ export default function ScheduleManager() {
                 >
                   검색
                 </button>
+                {(formData.placeName || formData.address || formData.roadAddress) && (
+                  <button
+                    onClick={handleClearAddress}
+                    className="bg-slate-200 text-slate-700 px-4 py-2 rounded hover:bg-slate-300"
+                  >
+                    주소 없음
+                  </button>
+                )}
               </div>
             </div>
 
@@ -307,7 +326,7 @@ export default function ScheduleManager() {
                 </div>
                 <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg font-bold">
                   <span className="text-slate-400">📍</span>
-                  {schedule.placeName}
+                  {schedule.placeName || '장소 미정'}
                 </div>
               </div>
 
