@@ -23,11 +23,6 @@ export default function ScheduleOverview({ schedules, onItemClick }: ScheduleOve
 
   return (
     <section className="mb-16">
-      <div className="mb-6 flex items-center gap-3">
-        <span className="w-1.5 h-6 bg-sky-500 rounded-full"></span>
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Today&apos;s Schedule</h2>
-      </div>
-      
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8">
         <div className="space-y-8 relative before:content-[''] before:absolute before:left-[95px] sm:before:left-[135px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100">
           {sortedSchedules.map((schedule) => {
