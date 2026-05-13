@@ -322,10 +322,10 @@ export default function AdminPanel() {
   });
 
   const tabs: { id: TabType; label: string; icon: string }[] = [
-    { id: 'teams', label: '팀 관리', icon: '' },
-    { id: 'participants', label: '참가자 관리', icon: '' },
-    { id: 'scores', label: '점수 관리', icon: '' },
-    { id: 'schedule', label: '일정 관리', icon: '' },
+    { id: 'teams', label: '팀 관리', icon: '🏆' },
+    { id: 'participants', label: '참가자 관리', icon: '👥' },
+    { id: 'scores', label: '점수 관리', icon: '⭐' },
+    { id: 'schedule', label: '일정 관리', icon: '📅' },
     { id: 'settings', label: '행사 설정', icon: '⚙️' },
   ];
 

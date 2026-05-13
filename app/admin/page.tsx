@@ -1,20 +1,38 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import AdminPanel from './AdminPanel';
 
+const ADMIN_AUTH_EVENT = 'admin-auth-changed';
+
+const getAdminAuthSnapshot = () => {
+  if (typeof window === 'undefined') return false;
+  return window.sessionStorage.getItem('adminAuthenticated') === 'true';
+};
+
+const subscribeAdminAuth = (onStoreChange: () => void) => {
+  window.addEventListener('storage', onStoreChange);
+  window.addEventListener(ADMIN_AUTH_EVENT, onStoreChange);
+
+  return () => {
+    window.removeEventListener('storage', onStoreChange);
+    window.removeEventListener(ADMIN_AUTH_EVENT, onStoreChange);
+  };
+};
+
 export default function AdminPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return sessionStorage.getItem('adminAuthenticated') === 'true';
-  });
+  const isAuthenticated = useSyncExternalStore(
+    subscribeAdminAuth,
+    getAdminAuthSnapshot,
+    () => false
+  );
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const handleLogin = () => {
     if (password === process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
-      setIsAuthenticated(true);
-      sessionStorage.setItem('adminAuthenticated', 'true');
+      window.sessionStorage.setItem('adminAuthenticated', 'true');
+      window.dispatchEvent(new Event(ADMIN_AUTH_EVENT));
       setError('');
     } else {
       setError('비밀번호가 잘못되었습니다.');
