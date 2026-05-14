@@ -2,9 +2,29 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useEventSettings } from '@/hooks/useEventSettings';
+
+function formatEventDateRange(startDate?: string, endDate?: string) {
+  if (!startDate || !endDate) return '일정 미정';
+
+  const [startYear, startMonth, startDay] = startDate.split('-');
+  const [, endMonth, endDay] = endDate.split('-');
+
+  if (!startYear || !startMonth || !startDay || !endMonth || !endDay) {
+    return '일정 미정';
+  }
+
+  if (startDate === endDate) {
+    return `${startYear}.${startMonth}.${startDay}`;
+  }
+
+  return `${startYear}.${startMonth}.${startDay} - ${endMonth}.${endDay}`;
+}
 
 export default function RankingPageHero() {
   const [currentTime, setCurrentTime] = useState<Date>(() => new Date());
+  const { settings } = useEventSettings();
+  const eventDate = formatEventDateRange(settings?.startDate, settings?.endDate);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -26,7 +46,7 @@ export default function RankingPageHero() {
           <div className="flex items-center gap-4 bg-slate-50 p-5 rounded-3xl border border-slate-100 shadow-inner">
             <div className="text-right border-r border-slate-200 pr-4">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Event Date</p>
-              <p className="text-sm font-black text-slate-700">2026.06.11 - 12</p>
+              <p className="text-sm font-black text-slate-700">{eventDate}</p>
             </div>
             <div>
               <p className="text-[10px] font-black text-sky-400 uppercase tracking-widest mb-0.5">Current Time</p>
